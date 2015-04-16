@@ -22,7 +22,10 @@
 set :environment, :development
 
 # On the fifth minute (to account for lag from the Bureau's website) of very 10 minutes within an hour, update the data
-every '3-59/10 * * * *' do
+
+#((24 hours * 21 stations )/ 1000 API calls)* 60 minutes (minutes/hour) number of minutes between each call
+
+every '*/30.24 * * * *' do
 
   rake 'new'
 
