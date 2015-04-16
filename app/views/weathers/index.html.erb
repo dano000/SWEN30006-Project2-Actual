@@ -1,0 +1,44 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Weathers</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Station</th>
+      <th>Rainfall</th>
+      <th>Temperature</th>
+      <th>Dew Point</th>
+      <th>Wind Direction</th>
+      <th>Wind Speed</th>
+      <th>Time Taken</th>
+      <th>Station Name</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @weathers.each do |weather| %>
+      <tr>
+        <td><%= weather.time %></td>
+        <td><%= weather.station %></td>
+        <td><%= weather.rainfall.current %></td>
+        <td><%= weather.temperature.current %></td>
+        <td><%= weather.dewpoint.current %></td>
+        <td><%= weather.winddir.current %></td>
+        <td><%= weather.windspeed.current %></td>
+        <td><%= weather.time.in_time_zone('Melbourne') %></td>
+        <td><%= weather.station.name %></td>
+
+        <td><%= link_to 'Show', weather %></td>
+        <td><%= link_to 'Edit', edit_weather_path(weather) %></td>
+        <td><%= link_to 'Destroy', weather, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Weather', new_weather_path %>

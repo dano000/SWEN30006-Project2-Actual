@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Winddirs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Current</th>
+      <th>Weather</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @winddirs.each do |winddir| %>
+      <tr>
+        <td><%= winddir.current %></td>
+        <td><%= winddir.weather %></td>
+        <td><%= link_to 'Show', winddir %></td>
+        <td><%= link_to 'Edit', edit_winddir_path(winddir) %></td>
+        <td><%= link_to 'Destroy', winddir, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Winddir', new_winddir_path %>

@@ -1,0 +1,25 @@
+<%= form_for(@windspeed) do |f| %>
+  <% if @windspeed.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@windspeed.errors.count, "error") %> prohibited this windspeed from being saved:</h2>
+
+      <ul>
+      <% @windspeed.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :current %><br>
+    <%= f.text_field :current %>
+  </div>
+  <div class="field">
+    <%= f.label :weather_id %><br>
+    <%= f.text_field :weather_id %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

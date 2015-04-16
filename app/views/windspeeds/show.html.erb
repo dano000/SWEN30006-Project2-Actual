@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Current:</strong>
+  <%= @windspeed.current %>
+</p>
+
+<p>
+  <strong>Weather:</strong>
+  <%= @windspeed.weather %>
+</p>
+
+<%= link_to 'Edit', edit_windspeed_path(@windspeed) %> |
+<%= link_to 'Back', windspeeds_path %>

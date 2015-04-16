@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Current:</strong>
+  <%= @rainfall.current %>
+</p>
+
+<p>
+  <strong>Weather:</strong>
+  <%= @rainfall.weather %>
+</p>
+
+<%= link_to 'Edit', edit_rainfall_path(@rainfall) %> |
+<%= link_to 'Back', rainfalls_path %>

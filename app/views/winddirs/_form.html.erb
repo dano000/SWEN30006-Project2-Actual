@@ -1,0 +1,25 @@
+<%= form_for(@winddir) do |f| %>
+  <% if @winddir.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@winddir.errors.count, "error") %> prohibited this winddir from being saved:</h2>
+
+      <ul>
+      <% @winddir.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :current %><br>
+    <%= f.text_field :current %>
+  </div>
+  <div class="field">
+    <%= f.label :weather_id %><br>
+    <%= f.text_field :weather_id %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

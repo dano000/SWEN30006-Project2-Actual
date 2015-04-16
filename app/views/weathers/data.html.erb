@@ -1,0 +1,36 @@
+<p id="notice"><%= notice %></p>
+
+<h1 style="align-content: center">Current Weather</h1>
+<table class="table">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Latitude</th>
+    <th>Longitude</th>
+    <th>Rainfall</th>
+    <th>Temperature</th>
+    <th>Dew Point</th>
+    <th>Wind Direction</th>
+    <th>Wind Speed</th>
+    <th>Local DateTime</th>
+  </tr>
+  </thead>
+    <tbody>
+    <% @weathers.each do |weather| %>
+        <tr>
+          <td><%= weather.station.name %></td>
+          <td><%= weather.station.lat %></td>
+          <td><%= weather.station.long %></td>
+          <td><%= weather.rainfall.current %></td>
+          <td><%= weather.temperature.current %></td>
+          <td><%= weather.dewpoint.current %></td>
+          <td><%= weather.winddir.current %></td>
+          <td><%= weather.windspeed.current %></td>
+          <td><%= weather.time.in_time_zone('Melbourne') %></td>
+          </tr>
+    <% end %>
+
+    </tbody>
+
+
+  </table>
