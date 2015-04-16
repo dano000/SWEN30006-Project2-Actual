@@ -26,10 +26,7 @@ class Scrape
   end
 ################ Return the current forecast from Forecast.io #################
   def self.update_forecast(lat, long,station_id)
-    puts lat
-    puts long
     lat_long = (lat.to_s+","+long.to_s).to_s
-    puts "#{BASE_FIO}#{API_KEY}/#{lat_long}?units=ca"
     forecast = JSON.parse(open("#{BASE_FIO}#{API_KEY}/#{lat_long}?units=ca").read)
     f_datetime = DateTime.strptime(forecast['currently']['time'].to_s,'%s')
 
