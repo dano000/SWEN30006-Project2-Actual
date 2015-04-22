@@ -6,6 +6,7 @@
 2. rake db:create
 3. rake db:migrate
 4. rake new
-5. whenever -w
-6. whenever --update-crontab
-7. rails s
+5. rake new_fio
+6. whenever -w
+7. whenever --update-crontab
+8. rails s
