@@ -25,8 +25,12 @@ set :environment, :development
 
 #((24 hours * 21 stations )/ 1000 API calls)* 60 minutes (minutes/hour) number of minutes between each call
 
+every '3/60 * * * *' do
+  rake 'new_bom'
+end
+
 every '*/30.24 * * * *' do
 
-  rake 'new'
+  rake 'new_fio'
 
 end

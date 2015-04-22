@@ -117,8 +117,6 @@ class Scrape
       end
 
       update_bureau_row(name,b_rainfall,b_temp,b_dewpoint,b_winddir,b_windspeed,b_datetime)
-      update_forecast(i.lat,i.long,i.id)
-
     }
 
   end
@@ -136,6 +134,13 @@ class Scrape
     Windspeed.create(current:b_windspeed,weather_id:weather_out.id)
   end
 
+
+  def self.new_fio
+   Station.all.each do |i|
+     update_forecast(i.lat,i.long,i.id)
+   end
+
+  end
 
 
 end
