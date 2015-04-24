@@ -21,71 +21,6 @@ class Scrape
 
 ################ Sanitise the input from BOM Data #############################
 
-  def self.sanitize(input)
-    (input == "-") ? nil : input
-  end
-################ Return the current forecast from Forecast.io #################
-  def self.update_forecast(lat, long,station_id)
-    lat_long = (lat.to_s+","+long.to_s).to_s
-    forecast = JSON.parse(open("#{BASE_FIO}#{API_KEY}/#{lat_long}?units=ca").read)
-    f_datetime = DateTime.strptime(forecast['currently']['time'].to_s,'%s')
-
-    f_precip = forecast['currently']['precipIntensity'] * 24 # Convert precipitation/hour to per day
-    f_temp = forecast['currently']['temperature']
-    f_dewpoint = forecast['currently']['dewPoint']
-    f_winddir = bearing_to_dir(forecast['currently']['windBearing']) # Convert Bearing in Degrees to Cardinal Direction
-    f_windspeed = forecast['currently']['windSpeed']
-
-
-    weather_out = Weather.create(time:f_datetime,station_id:station_id)
-    Rainfall.create(current:f_precip,weather_id:weather_out.id)
-    Temperature.create(current:f_temp,weather_id:weather_out.id)
-    Dewpoint.create(current:f_dewpoint,weather_id:weather_out.id)
-    Winddir.create(current:f_winddir,weather_id:weather_out.id)
-    Windspeed.create(current:f_windspeed,weather_id:weather_out.id)
-
-  end
-
-
-
-  #Source: http://climate.umn.edu/snow_fence/components/winddirectionanddegreeswithouttable3.htm
-  def self.bearing_to_dir(wind)
-      if (wind > 348.75 and wind <=360) or (wind >= 0 and wind < 11.25)
-        return 'N'
-      elsif wind >= 11.25 and wind < 33.75
-        return 'NNE'
-      elsif (wind >= 33.75 and wind < 56.25)
-        return 'NE'
-      elsif (wind >= 56.25 and wind < 78.75)
-        return 'ENE'
-      elsif (wind >= 78.75 and wind < 101.25)
-        return 'E'
-      elsif (wind >= 101.25 and wind < 123.75)
-        return 'ESE'
-      elsif (wind >= 123.75 and wind < 146.25)
-        return 'SE'
-      elsif (wind >= 146.25 and wind < 168.75)
-        return 'SSE'
-      elsif (wind >= 168.75 and wind < 191.25)
-        return 'S'
-      elsif (wind >= 191.25 and wind < 213.75)
-        return 'SSW'
-      elsif (wind >= 213.75 and wind < 236.25)
-        return 'SW'
-      elsif (wind >= 236.25 and wind < 258.75)
-        return 'WSW'
-      elsif (wind >= 258.75 and wind < 281.25)
-        return 'W'
-      elsif (wind >= 281.25 and wind < 303.75)
-        return 'WNW'
-      elsif (wind >= 303.75 and wind < 326.25)
-        return 'NW'
-      elsif (wind >= 326.25 and wind <= 348.75)
-        return 'NNW'
-      end
-
-
-  end
 
 ###### Scrape Stations for the first time and initial data ####################
 
@@ -121,12 +56,22 @@ class Scrape
 
   end
 
+  def self.new_fio
+    Station.all.each do |i|
+      update_forecast(i.lat,i.long,i.id)
+    end
+
+  end
+
+
+  private
+
 ###### Scrape current data from the BoM Site ##################################
 
   def self.update_bureau_row(name,b_rainfall,b_temp,b_dewpoint,b_winddir,b_windspeed,b_datetime)
 
     current_station = Station.find_by_name(name)
-    weather_out = Weather.create(time:b_datetime,station_id:current_station.id)
+    weather_out = Weather.create(time:b_datetime,station_id:current_station.id,source:'BOM')
     Rainfall.create(current:b_rainfall,weather_id:weather_out.id)
     Temperature.create(current:b_temp,weather_id:weather_out.id)
     Dewpoint.create(current:b_dewpoint,weather_id:weather_out.id)
@@ -134,13 +79,88 @@ class Scrape
     Windspeed.create(current:b_windspeed,weather_id:weather_out.id)
   end
 
+  def self.sanitize(input)
+    (input == "-") ? nil : input
+  end
+################ Return the current forecast from Forecast.io #################
+  def self.update_forecast(lat, long,station_id)
+    lat_long = (lat.to_s+","+long.to_s).to_s
+    forecast = JSON.parse(open("#{BASE_FIO}#{API_KEY}/#{lat_long}?units=ca").read)
+    f_datetime = DateTime.strptime(forecast['currently']['time'].to_s,'%s')
 
-  def self.new_fio
-   Station.all.each do |i|
-     update_forecast(i.lat,i.long,i.id)
-   end
+    f_precip = forecast['currently']['precipIntensity'] * (30.24/60.0) # Convert precipitation/hour to per 30.24 minute interval (avg/hour * interval/hour = avg/interval) and add previous precipitation from 9:00(previous result)
+
+    last_f_precip = Weather.where(source: 'FIO').last
+
+    # If more than one record exists, and the time delta between records is less than 24 hours, add the previous precipitation
+    # otherwise this is the initial precipitation, and the initial time is 9am on this day.
+
+    if last_f_precip != nil
+      puts f_datetime.to_time
+      puts last_f_precip.initial.to_time
+
+      puts (f_datetime.to_time - last_f_precip.initial.to_time)/3600
+
+      if ((f_datetime.to_time - last_f_precip.initial.to_time)/3600) < 24.hours
+        f_precip += last_f_precip.rainfall.current
+        initial_time = last_f_precip.initial
+      else
+        initial_time = Time.local(Date.today.year,Date.today.month,Date.today.day,9,0,0).to_datetime
+      end
+    else
+      initial_time = Time.local(Date.today.year,Date.today.month,Date.today.day,9,0,0).to_datetime
+    end
+
+    f_temp = forecast['currently']['temperature']
+    f_dewpoint = forecast['currently']['dewPoint']
+    f_winddir = bearing_to_dir(forecast['currently']['windBearing']) # Convert Bearing in Degrees to Cardinal Direction
+    f_windspeed = forecast['currently']['windSpeed']
+
+
+    weather_out = Weather.create(time:f_datetime,station_id:station_id,source:'FIO',initial:initial_time)
+    Rainfall.create(current:f_precip,weather_id:weather_out.id)
+    Temperature.create(current:f_temp,weather_id:weather_out.id)
+    Dewpoint.create(current:f_dewpoint,weather_id:weather_out.id)
+    Winddir.create(current:f_winddir,weather_id:weather_out.id)
+    Windspeed.create(current:f_windspeed,weather_id:weather_out.id)
 
   end
 
+#Source: http://climate.umn.edu/snow_fence/components/winddirectionanddegreeswithouttable3.htm
+  def self.bearing_to_dir(wind)
+    if (wind > 348.75 and wind <=360) or (wind >= 0 and wind < 11.25)
+      return 'N'
+    elsif wind >= 11.25 and wind < 33.75
+      return 'NNE'
+    elsif (wind >= 33.75 and wind < 56.25)
+      return 'NE'
+    elsif (wind >= 56.25 and wind < 78.75)
+      return 'ENE'
+    elsif (wind >= 78.75 and wind < 101.25)
+      return 'E'
+    elsif (wind >= 101.25 and wind < 123.75)
+      return 'ESE'
+    elsif (wind >= 123.75 and wind < 146.25)
+      return 'SE'
+    elsif (wind >= 146.25 and wind < 168.75)
+      return 'SSE'
+    elsif (wind >= 168.75 and wind < 191.25)
+      return 'S'
+    elsif (wind >= 191.25 and wind < 213.75)
+      return 'SSW'
+    elsif (wind >= 213.75 and wind < 236.25)
+      return 'SW'
+    elsif (wind >= 236.25 and wind < 258.75)
+      return 'WSW'
+    elsif (wind >= 258.75 and wind < 281.25)
+      return 'W'
+    elsif (wind >= 281.25 and wind < 303.75)
+      return 'WNW'
+    elsif (wind >= 303.75 and wind < 326.25)
+      return 'NW'
+    elsif (wind >= 326.25 and wind <= 348.75)
+      return 'NNW'
+    end
+  end
 
 end

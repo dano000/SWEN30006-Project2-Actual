@@ -50,6 +50,8 @@ ActiveRecord::Schema.define(version: 20150416072208) do
 
   create_table "weathers", force: :cascade do |t|
     t.datetime "time"
+    t.datetime "initial"
+    t.string   "source"
     t.integer  "station_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

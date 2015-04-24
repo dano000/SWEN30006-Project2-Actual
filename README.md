@@ -5,7 +5,7 @@
 1. bundle install
 2. rake db:create
 3. rake db:migrate
-4. rake new
+4. rake new_bom
 5. rake new_fio
 6. whenever -w
 7. whenever --update-crontab
